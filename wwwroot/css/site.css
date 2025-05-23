@@ -1,0 +1,76 @@
+/* body {
+    background-color: #ffffff;
+    color: #333333;
+    font-family: 'Segoe UI', sans-serif;
+}
+.intro-section {
+    padding: 60px 20px;
+    text-align: center;
+    background-color: #fffbe6;
+    border-bottom: 3px solid #ffdd44;
+}
+h1 {
+    color: #ffc107;
+    font-weight: 700;
+}
+.lead {
+    color: #666666;
+}
+.search-bar {
+    max-width: 500px;
+    margin: 0 auto;
+}
+.btn-primary {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+.btn-primary:hover {
+    background-color: #ffca2c;
+    border-color: #ffca2c;
+    color: #000;
+}
+#result {
+    padding: 20px;
+    background-color: #fffde7;
+    border-radius: 10px;
+    max-width: 700px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    margin: 20px auto;
+}
+#map { 
+    height: 380px;
+    width: 100%;
+    margin-top: 20px;
+} */
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}

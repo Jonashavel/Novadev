@@ -5,43 +5,40 @@
 }
 
 <div class="container">
-        <div class="intro-section">
-            <h1>Find nearby banks and ATMs</h1>
-            <p class="lead mb-4">Quickly locate the nearest banks in your area</p>
+    <div class="intro-section">
+        <h1>Find nearby banks and ATMs</h1>
+        <p class="lead mb-4">Quickly locate the nearest banks in your area</p>
+
+        <form method="post">
             <div class="search-bar">
                 <label for="Address">Location:</label><br>
-                <input type="text" id="searchInput" name="searchInput" class="form-control mb-2" placeholder="Enter your city or address">
-                <button class="btn btn-primary" onclick="handleSearch()">Search</button>
-                <button class="btn btn-primary" onclick="GetMap()">map</button>
+                <input type="text" id="searchInput" name="SearchInput" class="form-control mb-2" placeholder="Enter your city or address" />
+                <button type="submit" class="btn btn-primary">Search</button>
             </div>
-        </div>
-        <div id="result"></div>
-        <div id="map"></div>
+        </form>
     </div>
-    @section Scripts {
+
+    @if (!string.IsNullOrEmpty(Model.SearchInput))
+    {
+        <div id="result">
+            <h4 class="text-success">You searched for: <strong>@Model.SearchInput</strong></h4>
+        </div>
+    }
+
+    <div id="map"></div>
+</div>
+
+@section Scripts {
     <script src="https://atlas.microsoft.com/sdk/js/atlas.min.js?api-version=2"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-        function handleSearch() {
-            const query = document.getElementById("searchInput").value.trim();
-            const resultDiv = document.getElementById("result");
-            
-            if (!query) {
-                resultDiv.innerHTML = '<p class="text-danger">Please enter a location to search.</p>';
-                return;
-            }
-            
-            resultDiv.innerHTML = `<h4 class="text-warning">Results for: <strong>${query}</strong></h4><p class="text-muted">[No results yet...]</p>`;
-        }
-
         function GetMap() {
             const map = new atlas.Map('map', {
                 center: [-118.270293, 34.039737],
                 zoom: 14,
                 authOptions: {
                     authType: 'subscriptionKey',
-                    subscriptionKey: '9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN' // Replace with your real key
+                    subscriptionKey: '9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN'
                 }
             });
         }
@@ -49,7 +46,3 @@
         window.onload = GetMap;
     </script>
 }
-@* <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div> *@

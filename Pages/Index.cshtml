@@ -1,10 +1,24 @@
-﻿@page
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
 <div class="container">
+    <div class="intro-section">
+        <h1>Find nearby banks and ATMs</h1>
+        <p class="lead mb-4">Quickly locate the nearest banks in your area</p>
+        <div class="search-bar">
+            <label for="Address">Location:</label><br>
+            <input type="text" id="searchInput" name="searchInput" class="form-control mb-2" placeholder="Enter your city or address">
+            <button class="btn btn-primary" onclick="handleSearch()">Search</button>
+        </div>
+    </div>
+    <div id="result"></div>
+    <div id="map"></div>
+</div>
+
+@section Scripts {
     <div class="intro-section">
         <h1>Find nearby banks and ATMs</h1>
         <p class="lead mb-4">Quickly locate the nearest banks in your area</p>
@@ -34,10 +48,25 @@
     <script>
         function GetMap() {
             const map = new atlas.Map('map', {
-                center: [-118.270293, 34.039737],
+                center: [-118.270293, 34.039737],  // Inicializační bod mapy
                 zoom: 14,
                 authOptions: {
                     authType: 'subscriptionKey',
+                    subscriptionKey: '9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN' // Klíč pro přístup
+                }
+            });
+        }
+
+        function itemClicked(id) {
+            $.ajax({
+                url: '@Url.Page("Index", "ItemClicked")', 
+                method: 'POST',
+                data: { id: id },
+                success: function (details) {
+                    alert(`Clicked item details: ${JSON.stringify(details)}`);
+                },
+                error: function (xhr, status, error) {
+                    alert(`Error: ${xhr.responseText}`);
                     subscriptionKey: '9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN'
                 }
             });

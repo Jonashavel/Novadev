@@ -1,24 +1,24 @@
-﻿@page
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
 <div class="container">
-        <div class="intro-section">
-            <h1>Find nearby banks and ATMs</h1>
-            <p class="lead mb-4">Quickly locate the nearest banks in your area</p>
-            <div class="search-bar">
-                <label for="Address">Location:</label><br>
-                <input type="text" id="searchInput" name="searchInput" class="form-control mb-2" placeholder="Enter your city or address">
-                <button class="btn btn-primary" onclick="handleSearch()">Search</button>
-                <button class="btn btn-primary" onclick="GetMap()">map</button>
-            </div>
+    <div class="intro-section">
+        <h1>Find nearby banks and ATMs</h1>
+        <p class="lead mb-4">Quickly locate the nearest banks in your area</p>
+        <div class="search-bar">
+            <label for="Address">Location:</label><br>
+            <input type="text" id="searchInput" name="searchInput" class="form-control mb-2" placeholder="Enter your city or address">
+            <button class="btn btn-primary" onclick="handleSearch()">Search</button>
         </div>
-        <div id="result"></div>
-        <div id="map"></div>
     </div>
-    @section Scripts {
+    <div id="result"></div>
+    <div id="map"></div>
+</div>
+
+@section Scripts {
     <script src="https://atlas.microsoft.com/sdk/js/atlas.min.js?api-version=2"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -32,16 +32,48 @@
                 return;
             }
             
-            resultDiv.innerHTML = `<h4 class="text-warning">Results for: <strong>${query}</strong></h4><p class="text-muted">[No results yet...]</p>`;
+            $.ajax({
+                url: '@Url.Page("Index", "Search")', 
+                method: 'POST',
+                data: { query: query },
+                success: function (response) {
+                    resultDiv.innerHTML = `<h4 class="text-warning">Results for: <strong>${response.query}</strong></h4>`;
+                    const resultsHtml = response.places.map(function(place) {
+                        return `<div onclick="itemClicked('${place.id}')">
+                            <h5>${place.name}</h5>
+                            <p>Address: ${place.address}</p>
+                            <p>Phone: ${place.phone}</p>
+                        </div>`;
+                    }).join('');
+                    resultDiv.innerHTML += resultsHtml;
+                },
+                error: function (xhr, status, error) {
+                    resultDiv.innerHTML = `<p class="text-danger">Error: ${xhr.responseText}</p>`;
+                }
+            });
         }
 
         function GetMap() {
             const map = new atlas.Map('map', {
-                center: [-118.270293, 34.039737],
+                center: [-118.270293, 34.039737],  // Inicializační bod mapy
                 zoom: 14,
                 authOptions: {
                     authType: 'subscriptionKey',
-                    subscriptionKey: '9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN' // Replace with your real key
+                    subscriptionKey: '9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN' // Klíč pro přístup
+                }
+            });
+        }
+
+        function itemClicked(id) {
+            $.ajax({
+                url: '@Url.Page("Index", "ItemClicked")', 
+                method: 'POST',
+                data: { id: id },
+                success: function (details) {
+                    alert(`Clicked item details: ${JSON.stringify(details)}`);
+                },
+                error: function (xhr, status, error) {
+                    alert(`Error: ${xhr.responseText}`);
                 }
             });
         }
@@ -49,7 +81,3 @@
         window.onload = GetMap;
     </script>
 }
-@* <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div> *@

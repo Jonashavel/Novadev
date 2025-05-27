@@ -1,52 +1,63 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-//using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Text.Json;
+using System.Collections.Generic;
 
 namespace Novadev.Pages
 {
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public IndexModel(ILogger<IndexModel> logger)
+        public IndexModel(ILogger<IndexModel> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
-        public IActionResult OnPostSearch(string query)
+        // Autocomplete API for city search
+        public async Task<IActionResult> OnGetSearchCityAsync(string term)
         {
-            if (string.IsNullOrWhiteSpace(query))
+            if (string.IsNullOrWhiteSpace(term))
             {
-                return BadRequest("Please enter a location to search.");
+                return BadRequest("Search term is required.");
             }
 
-            var result = new
+            var httpClient = _httpClientFactory.CreateClient();
+            string subscriptionKey = "9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN";
+            string url = $"https://atlas.microsoft.com/search/address/json?api-version=1.0&subscription-key={subscriptionKey}&typeahead=true&query={term}&limit=5";
+
+            var response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
             {
-                query = query,
-                places = new[]
+                return StatusCode((int)response.StatusCode, "Error fetching city data.");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var data = JsonDocument.Parse(json);
+
+            var results = data.RootElement.GetProperty("results");
+
+            var suggestions = new List<object>();
+            foreach (var result in results.EnumerateArray())
+            {
+                var address = result.GetProperty("address");
+                var position = result.GetProperty("position");
+
+                suggestions.Add(new
                 {
-                    new { id = "1", name = "Bank A", address = "Street 1", phone = "123-456", latitude = 34.039737, longitude = -118.270293 },
-                    new { id = "2", name = "ATM B", address = "Street 2", phone = "789-012", latitude = 34.040000, longitude = -118.271000 },
-                }
-            };
+                    label = address.GetProperty("freeformAddress").GetString(),
+                    value = address.GetProperty("freeformAddress").GetString(),
+                    lat = position.GetProperty("lat").GetDouble(),
+                    lon = position.GetProperty("lon").GetDouble()
+                });
+            }
 
-            return new JsonResult(result);
-        }
-
-        public IActionResult OnPostItemClicked(string id)
-        {
-            var details = new
-            {
-                id = id,
-                name = id == "1" ? "Bank A" : "ATM B",
-                address = id == "1" ? "Street 1" : "Street 2",
-                phone = id == "1" ? "123-456" : "789-012",
-                description = id == "1" ? "A well-known bank" : "A local ATM",
-                latitude = id == "1" ? 34.039737 : 34.040000,
-                longitude = id == "1" ? -118.270293 : -118.271000
-            };
-
-            return new JsonResult(details);
+            return new JsonResult(suggestions);
         }
 
         public void OnGet()

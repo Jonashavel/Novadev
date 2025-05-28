@@ -17,7 +17,7 @@
     <div id="map" style="height: 500px;"></div>
 </div>
 
-@section Scripts {
+@* @section Scripts {
     <!-- jQuery and jQuery UI for autocomplete -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
@@ -79,6 +79,97 @@
                 },
                 minLength: 2
             });
+        });
+    </script>
+} *@
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+    <script src="https://atlas.microsoft.com/sdk/js/atlas.min.js?api-version=2"></script>
+    <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/css/atlas.min.css?api-version=2" />
+
+    <script>
+        let map;
+        let marker = null;
+
+        function initializeMap() {
+            map = new atlas.Map('map', {
+                center: [0, 0],
+                zoom: 2,
+                authOptions: {
+                    authType: 'subscriptionKey',
+                    subscriptionKey: '9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN'
+                }
+            });
+
+            map.events.add('ready', function () {
+                setupAutocomplete();
+            });
+        }
+
+        function setupAutocomplete() {
+            $("#searchInput").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Page("Index", "SearchCity")',
+                        data: { term: request.term },
+                        success: function (data) {
+                            response(data);
+                        },
+                        error: function () {
+                            response([]);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    const position = [ui.item.lon, ui.item.lat];
+                    map.setCamera({ center: position, zoom: 12 });
+
+                    // Remove old marker
+                    if (marker) {
+                        map.markers.remove(marker);
+                    }
+
+                    // Add main marker
+                    marker = new atlas.HtmlMarker({
+                        position: position,
+                        text: '📍'
+                    });
+                    map.markers.add(marker);
+
+                    // Load banks/ATMs nearby
+                    searchNearbyPOIs(ui.item.lat, ui.item.lon);
+                },
+                minLength: 2
+            });
+        }
+
+        function searchNearbyPOIs(lat, lon) {
+            $.getJSON('@Url.Page("Index", "SearchPOI")', { lat: lat, lon: lon }, function (data) {
+                if (!data || data.length === 0) {
+                    $('#result').html('<p>No nearby banks/ATMs found.</p>');
+                    return;
+                }
+
+                $('#result').html('<ul class="list-group mb-2">' + data.map(poi =>
+                    `<li class="list-group-item"><strong>${poi.name}</strong><br><small>${poi.address}</small></li>`
+                ).join('') + '</ul>');
+
+                data.forEach(poi => {
+                    const poiMarker = new atlas.HtmlMarker({
+                        position: [poi.lon, poi.lat],
+                        color: 'blue',
+                        text: '🏦'
+                    });
+                    map.markers.add(poiMarker);
+                });
+            });
+        }
+
+        $(document).ready(function () {
+            initializeMap();
         });
     </script>
 }

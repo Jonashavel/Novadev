@@ -60,6 +60,44 @@ namespace Novadev.Pages
             return new JsonResult(suggestions);
         }
 
+        public async Task<IActionResult> OnGetSearchPOIAsync(double lat, double lon)
+{
+    var httpClient = _httpClientFactory.CreateClient();
+    string subscriptionKey = "9L98ONwzVRUxJoCBRC0eS7LsA2RnB7ghI0qZfeIt5aVCRZzDykbFJQQJ99BEAC5RqLJZjxS7AAAgAZMP2QkN";
+    int radius = 5000; // 5 km
+
+    string url = $"https://atlas.microsoft.com/search/poi/category/json?api-version=1.0&subscription-key={subscriptionKey}&lat={lat}&lon={lon}&radius={radius}&categorySet=7323,7376";
+
+    var response = await httpClient.GetAsync(url);
+    if (!response.IsSuccessStatusCode)
+    {
+        return StatusCode((int)response.StatusCode, "Error fetching POIs.");
+    }
+
+    var json = await response.Content.ReadAsStringAsync();
+    var data = JsonDocument.Parse(json);
+
+    var results = data.RootElement.GetProperty("results");
+
+    var pois = new List<object>();
+    foreach (var result in results.EnumerateArray())
+    {
+        var position = result.GetProperty("position");
+        var poi = result.GetProperty("poi");
+        var address = result.GetProperty("address");
+
+        pois.Add(new
+        {
+            name = poi.GetProperty("name").GetString(),
+            lat = position.GetProperty("lat").GetDouble(),
+            lon = position.GetProperty("lon").GetDouble(),
+            address = address.GetProperty("freeformAddress").GetString()
+        });
+    }
+
+    return new JsonResult(pois);
+}
+
         public void OnGet()
         {
         }
